@@ -1,0 +1,12 @@
+spring:
+  application:
+    name: poc-rsocket
+  rsocket:
+    server:
+      port: 7000
+
+management:
+  endpoints:
+    web:
+      exposure:
+        includ: "*"

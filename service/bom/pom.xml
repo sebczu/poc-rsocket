@@ -15,6 +15,11 @@
     <dependencies>
       <dependency>
         <groupId>com.sebczu.poc.rsocket</groupId>
+        <artifactId>application</artifactId>
+        <version>${project.version}</version>
+      </dependency>
+      <dependency>
+        <groupId>com.sebczu.poc.rsocket</groupId>
         <artifactId>player-service</artifactId>
         <version>${project.version}</version>
       </dependency>

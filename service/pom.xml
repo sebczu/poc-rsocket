@@ -21,6 +21,8 @@
     <!--SERVICE-->
     <module>player/service</module>
 
+
+    <module>application</module>
   </modules>
 
 </project>
