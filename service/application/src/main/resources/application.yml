@@ -4,11 +4,12 @@ spring:
   rsocket:
     server:
       port: 7000
-#      transport: tcp
-      transport: websocket
+      transport: tcp
 
 management:
   endpoints:
     web:
       exposure:
         includ: "*"
+
+logging.level.io.rsocket.FrameLogger: DEBUG

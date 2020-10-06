@@ -7,26 +7,28 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.messaging.rsocket.RSocketRequester;
 import org.springframework.test.context.TestPropertySource;
 
-@TestPropertySource(properties = {"spring.rsocket.server.transport=tcp"})
-public class TcpPlayerControllerTest extends PlayerControllerTest {
+import java.net.URI;
 
-    private RSocketRequester tcpRequester;
+@TestPropertySource(properties = {"spring.rsocket.server.transport=websocket"})
+public class WsPlayerControllerTest extends PlayerControllerTest {
+
+    private RSocketRequester wsRequester;
 
     @BeforeEach
     public void setupTcpRequester(@Autowired RSocketRequester.Builder builder, @Value("${spring.rsocket.server.port}") Integer port) {
-        tcpRequester = builder
-                .connectTcp("localhost", port)
+        wsRequester = builder
+                .connectWebSocket(URI.create("ws://localhost:" + port))
                 .block();
     }
 
     @AfterEach
     public void disposeTcpRequester() {
-        tcpRequester.rsocket().dispose();
+        wsRequester.rsocket().dispose();
     }
 
     @Override
     protected RSocketRequester getRequester() {
-        return tcpRequester;
+        return wsRequester;
     }
 
 }
