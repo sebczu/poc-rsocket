@@ -1,12 +1,10 @@
 package com.sebczu.poc.rsocket.player;
 
-import io.rsocket.RSocketFactory;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
 import reactor.core.publisher.Mono;
-import reactor.netty.http.client.HttpClientResponse;
 
 import java.time.Duration;
 
@@ -40,7 +38,8 @@ public class PlayerController {
     @MessageMapping("message")
     public Flux<String> message(Flux<String> messages) {
         return messages.doOnNext(message -> log.info("message: {}", message))
-                .map(message -> "response to message: " + message);
+                .map(message -> "response to message: " + message)
+                .delayElements(Duration.ofMillis(1000));
     }
 
 }
