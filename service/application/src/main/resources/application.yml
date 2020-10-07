@@ -4,7 +4,7 @@ spring:
   rsocket:
     server:
       port: 7000
-      transport: tcp
+      transport: websocket
 
 management:
   endpoints:

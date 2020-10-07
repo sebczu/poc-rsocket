@@ -2,3 +2,5 @@
 *.iml
 target/
 .flattened-pom.xml
+package-lock.json
+node_modules/

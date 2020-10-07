@@ -1,0 +1,25 @@
+{
+  "name": "poc-rsocket",
+  "version": "0.0.1",
+  "description": "",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": [
+    "rsocket"
+  ],
+  "author": "sebczu",
+  "license": "MIT",
+  "dependencies": {
+    "browserify": "^16.5.2",
+    "rsocket-core": "0.0.19",
+    "rsocket-flowable": "0.0.14",
+    "rsocket-tcp-client": "0.0.19",
+    "rsocket-websocket-client": "0.0.19"
+  },
+  "devDependencies": {},
+  "scripts": {
+    "build": "browserify index.js > bundle.js"
+  }
+}
