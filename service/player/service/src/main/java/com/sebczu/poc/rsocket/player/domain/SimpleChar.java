@@ -1,4 +1,4 @@
-package com.sebczu.poc.rsocket.player;
+package com.sebczu.poc.rsocket.player.domain;
 
 import lombok.AllArgsConstructor;
 import lombok.Getter;

@@ -1,5 +1,6 @@
-package com.sebczu.poc.rsocket.player;
+package com.sebczu.poc.rsocket.player.controller;
 
+import com.sebczu.poc.rsocket.player.domain.SimpleChar;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
@@ -31,6 +32,5 @@ public class SimpleCharController {
                 .mapToObj(c -> new SimpleChar(Character.toString(c))))
                 .delayElements(Duration.ofMillis(1000));
     }
-
 
 }

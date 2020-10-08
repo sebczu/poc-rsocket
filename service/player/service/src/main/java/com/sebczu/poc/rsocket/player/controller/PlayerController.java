@@ -1,4 +1,4 @@
-package com.sebczu.poc.rsocket.player;
+package com.sebczu.poc.rsocket.player.controller;
 
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.MessageMapping;

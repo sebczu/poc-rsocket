@@ -14,6 +14,7 @@ var socketRequestResponse = undefined;
 
 var clientRequestStream = undefined;
 var socketRequestStream = undefined;
+var subscriptionRequestStream = undefined;
 
 function addEventLog(log) {
   var eventLog = document.getElementById("eventLog");
@@ -164,6 +165,10 @@ function connectRequestStream() {
       metadata: IdentitySerializer
     },
     setup: {
+      payload: {
+        data: "clientId-1",
+        metadata: String.fromCharCode("client".length) + "client"
+      },
       keepAlive: 5000,
       lifetime: 10000,
       dataMimeType: 'application/json',
@@ -171,12 +176,11 @@ function connectRequestStream() {
     },
     transport: new RSocketWebSocketClient({
       url: 'ws://localhost:7000/requeststream'
-    }),
+    })
   });
 
   clientRequestStream.connect().subscribe({
     onComplete: socket => {
-      // socket.requestStream
       socketRequestStream = socket;
       addEventLog("connection: on complete");
     },
@@ -225,11 +229,24 @@ function sendRequestStream() {
       addEventLog("request: on next data: " + payload.data.character + ", metadata: " + payload.metadata);
     },
     onSubscribe: subscription => {
+      subscriptionRequestStream = subscription;
+      //max number of reponse element
       subscription.request(100);
       addEventLog("request: on subscribe");
     },
   });
 
+}
+
+// cancel flux response, it's not close connection
+function cancelRequestStream() {
+  addEventLog("cancel: click");
+  subscriptionRequestStream.cancel();
+}
+
+function closeRequestStream() {
+  addEventLog("close: click");
+  socketRequestStream.close();
 }
 
 document.getElementById("connectFireAndForget").addEventListener('click', connectFireAndForget);
@@ -238,3 +255,5 @@ document.getElementById("connectRequestResponse").addEventListener('click', conn
 document.getElementById("sendRequestResponse").addEventListener('click', sendRequestResponse);
 document.getElementById("connectRequestStream").addEventListener('click', connectRequestStream);
 document.getElementById("sendRequestStream").addEventListener('click', sendRequestStream);
+document.getElementById("cancelRequestStream").addEventListener('click', cancelRequestStream);
+document.getElementById("closeRequestStream").addEventListener('click', closeRequestStream);
