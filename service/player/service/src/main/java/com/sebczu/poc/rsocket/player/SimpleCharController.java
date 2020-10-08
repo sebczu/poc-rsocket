@@ -12,11 +12,22 @@ import java.time.Duration;
 @Controller
 public class SimpleCharController {
 
-    //strategy: request-stream
-    @MessageMapping("char")
-    public Flux<SimpleChar> toCharacter(String toSplit) {
-        log.info("to character: {}", toSplit);
-        return Flux.fromStream(toSplit.chars()
+    @MessageMapping("fireandforget")
+    public Mono<Void> fireAndForget(String text) {
+        log.info("receive text: {}", text);
+        return Mono.empty();
+    }
+
+    @MessageMapping("requestresponse")
+    public Mono<SimpleChar> requestResponse(String text) {
+        log.info("receive text: {}", text);
+        return Mono.just(new SimpleChar("hello: " + text));
+    }
+
+    @MessageMapping("requeststream")
+    public Flux<SimpleChar> requestStream(String text) {
+        log.info("receive text: {}", text);
+        return Flux.fromStream(text.chars()
                 .mapToObj(c -> new SimpleChar(Character.toString(c))))
                 .delayElements(Duration.ofMillis(1000));
     }
