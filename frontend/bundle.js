@@ -5,7 +5,6 @@ const {
   IdentitySerializer
 } = require('rsocket-core');
 const RSocketWebSocketClient = require('rsocket-websocket-client').default;
-var client = undefined;
 
 var clientFireAndForget = undefined;
 var socketFireAndForget = undefined;
@@ -22,6 +21,27 @@ function addEventLog(log) {
   var eventLogLi = document.createElement("li");
   eventLogLi.appendChild(document.createTextNode(log));
   eventLog.appendChild(eventLogLi);
+}
+
+function subscibeConnectionSocket(socket) {
+  socket.connectionStatus().subscribe(connectionStatus => {
+    addEventLog("connection status: status " + connectionStatus.kind);
+  });
+
+  socket.connectionStatus().subscribe({
+    onComplete: () => {
+      addEventLog("connection status: on complete");
+    },
+    onError: error => {
+      addEventLog("connection status: error " + error);
+    },
+    onNext: value => {
+      addEventLog("connection status: on next " + value);
+    },
+    onSubscribe: subscription => {
+      addEventLog("connection status: on subscribe, name:" + subscription.request.name + ", length: " + subscription.request.length + ", prototype: " +  subscription.request.prototype);
+    }
+  });
 }
 
 // FIRE-AND-FORGET
@@ -47,6 +67,7 @@ function connectFireAndForget() {
   clientFireAndForget.connect().subscribe({
     onComplete: socket => {
       socketFireAndForget = socket;
+      subscibeConnectionSocket(socketFireAndForget);
       addEventLog("connection: on complete");
     },
     onError: error => {
@@ -60,25 +81,6 @@ function connectFireAndForget() {
 
 function sendFireAndForget() {
   addEventLog("request: click");
-
-  socketFireAndForget.connectionStatus().subscribe(connectionStatus => {
-    addEventLog("connection status: status " + connectionStatus.kind);
-  });
-
-  socketFireAndForget.connectionStatus().subscribe({
-    onComplete: () => {
-      addEventLog("connection status: on complete");
-    },
-    onError: error => {
-      addEventLog("connection status: error " + error);
-    },
-    onNext: value => {
-      addEventLog("connection status: on next " + value);
-    },
-    onSubscribe: subscription => {
-      addEventLog("connection status: on subscribe, name:" + subscription.request.name + ", length: " + subscription.request.length + ", prototype: " +  subscription.request.prototype);
-    }
-  });
 
   socketFireAndForget.fireAndForget({
     data: 'example text',
@@ -108,6 +110,7 @@ function connectRequestResponse() {
   clientRequestResponse.connect().subscribe({
     onComplete: socket => {
       socketRequestResponse = socket;
+      subscibeConnectionSocket(socketRequestResponse);
       addEventLog("connection: on complete");
     },
     onError: error => {
@@ -121,25 +124,6 @@ function connectRequestResponse() {
 
 function sendRequestResponse() {
   addEventLog("request: click");
-
-  socketRequestResponse.connectionStatus().subscribe(connectionStatus => {
-    addEventLog("connection status: status " + connectionStatus.kind);
-  });
-
-  socketRequestResponse.connectionStatus().subscribe({
-    onComplete: () => {
-      addEventLog("connection status: on complete");
-    },
-    onError: error => {
-      addEventLog("connection status: error " + error);
-    },
-    onNext: value => {
-      addEventLog("connection status: on next " + value);
-    },
-    onSubscribe: subscription => {
-      addEventLog("connection status: on subscribe, name:" + subscription.request.name + ", length: " + subscription.request.length + ", prototype: " +  subscription.request.prototype);
-    }
-  });
 
   socketRequestResponse.requestResponse({
     data: 'example text',
@@ -183,6 +167,7 @@ function connectRequestStream() {
   clientRequestStream.connect().subscribe({
     onComplete: socket => {
       socketRequestStream = socket;
+      subscibeConnectionSocket(socketRequestStream);
       addEventLog("connection: on complete");
     },
     onError: error => {
@@ -196,25 +181,6 @@ function connectRequestStream() {
 
 function sendRequestStream() {
   addEventLog("request: click");
-
-  socketRequestStream.connectionStatus().subscribe(connectionStatus => {
-    addEventLog("connection status: status " + connectionStatus.kind);
-  });
-
-  socketRequestStream.connectionStatus().subscribe({
-    onComplete: () => {
-      addEventLog("connection status: on complete");
-    },
-    onError: error => {
-      addEventLog("connection status: error " + error);
-    },
-    onNext: value => {
-      addEventLog("connection status: on next " + value);
-    },
-    onSubscribe: subscription => {
-      addEventLog("connection status: on subscribe, name:" + subscription.request.name + ", length: " + subscription.request.length + ", prototype: " +  subscription.request.prototype);
-    }
-  });
 
   socketRequestStream.requestStream({
     data: 'text',
