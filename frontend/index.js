@@ -4,6 +4,7 @@ const {
   IdentitySerializer
 } = require('rsocket-core');
 const RSocketWebSocketClient = require('rsocket-websocket-client').default;
+const { Flowable } = require('rsocket-flowable');
 
 var clientId = Math.floor((Math.random() * 10000) + 1);
 var keepAlive = 60000;
@@ -85,11 +86,30 @@ var clientRequestStream = new RSocketClient({
   })
 });
 
+var clientRequestChannel = new RSocketClient({
+  setup: {
+    payload: {
+      data: "clientId-requestchannel-" + clientId,
+      metadata: String.fromCharCode("client".length) + "client"
+    },
+    keepAlive: keepAlive,
+    lifetime: lifetime,
+    dataMimeType: 'text/plain',
+    metadataMimeType: 'message/x.rsocket.routing.v0',
+  },
+  transport: new RSocketWebSocketClient({
+    url: 'ws://localhost:7000/requestchannel'
+  })
+});
+
 var socketConfig = undefined;
 var socketFireAndForget = undefined;
 var socketRequestResponse = undefined;
 var socketRequestStream = undefined;
+var socketRequestChannel = undefined;
+
 var subscriptionRequestStream = undefined;
+var subscriptionRequestChannel = undefined;
 
 function addEventLog(log) {
   var eventLog = document.getElementById("eventLog");
@@ -255,7 +275,7 @@ function sendRequestStream() {
 
   socketRequestStream.requestStream({
     data: 'text',
-    metadata: String.fromCharCode('requeststream'.length) + 'requeststream',
+    metadata: String.fromCharCode('requeststream'.length) + 'requeststream'
   }).subscribe({
     onComplete: () => {
       addEventLog("request: on complete");
@@ -273,7 +293,6 @@ function sendRequestStream() {
       addEventLog("request: on subscribe");
     },
   });
-
 }
 
 // cancel flux response, it's not close connection
@@ -285,6 +304,64 @@ function cancelRequestStream() {
 function closeRequestStream() {
   addEventLog("close: click");
   socketRequestStream.close();
+}
+
+// REQUEST-CHANNEL
+function connectRequestChannel() {
+  addEventLog("connection: click");
+
+  clientRequestChannel.connect().subscribe({
+    onComplete: socket => {
+      socketRequestChannel = socket;
+      subscibeConnectionSocket(socketRequestChannel);
+      addEventLog("connection: on complete");
+    },
+    onError: error => {
+      addEventLog("connection: error " + error);
+    },
+    onSubscribe: cancel => {
+      addEventLog("connection: on subscribe");
+    }
+  });
+}
+
+function sendRequestChannel() {
+  addEventLog("request: click");
+
+  socketRequestChannel.requestChannel(
+    Flowable.just({
+      data: 'first',
+      metadata: String.fromCharCode('requestchannel'.length) + 'requestchannel',
+    }, {
+      data: 'second',
+      metadata: String.fromCharCode('requestchannel'.length) + 'requestchannel',
+    })
+  ).subscribe({
+    onComplete: () => {
+      addEventLog("request: on complete");
+    },
+    onError: error => {
+      addEventLog("request: error " + error);
+    },
+    onNext: payload => {
+      addEventLog("request: on next data: " + payload.data + ", metadata: " + payload.metadata);
+    },
+    onSubscribe: subscription => {
+      subscriptionRequestChannel = subscription;
+      subscription.request(100);
+      addEventLog("request: on subscribe");
+    },
+  });
+}
+
+function cancelRequestChannel() {
+  addEventLog("cancel: click");
+  subscriptionRequestChannel.cancel();
+}
+
+function closeRequestChannel() {
+  addEventLog("close: click");
+  socketRequestChannel.close();
 }
 
 document.getElementById("connectConfig").addEventListener('click', connectConfig);
@@ -303,4 +380,7 @@ document.getElementById("sendRequestStream").addEventListener('click', sendReque
 document.getElementById("cancelRequestStream").addEventListener('click', cancelRequestStream);
 document.getElementById("closeRequestStream").addEventListener('click', closeRequestStream);
 
-
+document.getElementById("connectRequestChannel").addEventListener('click', connectRequestChannel);
+document.getElementById("sendRequestChannel").addEventListener('click', sendRequestChannel);
+document.getElementById("cancelRequestChannel").addEventListener('click', cancelRequestChannel);
+document.getElementById("closeRequestChannel").addEventListener('click', closeRequestChannel);

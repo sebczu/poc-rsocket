@@ -33,4 +33,11 @@ public class SimpleCharController {
                 .delayElements(Duration.ofMillis(1000));
     }
 
+    @MessageMapping("requestchannel")
+    public Flux<String> requestChannel(Flux<String> texts) {
+        log.info("receive text: {}", texts);
+        return texts.doOnNext(text -> log.info("message: {}", text))
+                .map(text -> "hello: " + text)
+                .delayElements(Duration.ofMillis(1000));
+    }
 }
