@@ -2,28 +2,14 @@
          xsi:schemaLocation="http://maven.apache.org/POM/4.0.0 http://maven.apache.org/xsd/maven-4.0.0.xsd">
   <modelVersion>4.0.0</modelVersion>
 
-  <artifactId>service</artifactId>
+  <artifactId>config</artifactId>
   <packaging>pom</packaging>
 
   <parent>
     <groupId>com.sebczu.poc.rsocket</groupId>
-    <artifactId>poc-rsocket</artifactId>
+    <artifactId>parent</artifactId>
     <version>${revision}${changelist}${sha1}</version>
+    <relativePath>../parent</relativePath>
   </parent>
-
-  <modules>
-    <module>bom</module>
-    <module>parent</module>
-
-    <!--MODULES-->
-    <module>player</module>
-    <module>config</module>
-
-    <!--SERVICE-->
-    <module>player/service</module>
-    <module>config/service</module>
-
-    <module>application</module>
-  </modules>
 
 </project>

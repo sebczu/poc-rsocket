@@ -27,6 +27,10 @@
       <groupId>com.sebczu.poc.rsocket</groupId>
       <artifactId>player-service</artifactId>
     </dependency>
+    <dependency>
+      <groupId>com.sebczu.poc.rsocket</groupId>
+      <artifactId>config-service</artifactId>
+    </dependency>
     <!--EXTERNAL-->
     <dependency>
       <groupId>org.springframework.boot</groupId>
