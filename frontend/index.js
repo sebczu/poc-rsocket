@@ -64,6 +64,7 @@ var clientRequestResponse = new RSocketClient({
   transport: new RSocketWebSocketClient({
     url: 'ws://localhost:7000/requestresponse'
   }),
+  responder: new EchoResponder(),
 });
 
 var clientRequestStream = new RSocketClient({
@@ -110,6 +111,36 @@ var socketRequestChannel = undefined;
 
 var subscriptionRequestStream = undefined;
 var subscriptionRequestChannel = undefined;
+
+// class EchoResponder implements Responder<string, string> {
+//   metadataPush(payload: Payload<string, string>): Single<void> {
+//     return Single.error(new Error('not implemented'));
+//   }
+
+//   fireAndForget(payload: Payload<string, string>): void {
+//     logRequest('fire-and-forget', payload);
+//   }
+
+//   requestResponse(
+//     payload: Payload<string, string>,
+//   ): Single<Payload<string, string>> {
+//     logRequest('request-response', payload);
+//     return Single.of(make('client response'));
+//   }
+
+//   requestStream(
+//     payload: Payload<string, string>,
+//   ): Flowable<Payload<string, string>> {
+//     logRequest('request-stream', payload);
+//     return Flowable.just(make('client stream response'));
+//   }
+
+//   requestChannel(
+//     payloads: Flowable<Payload<string, string>>,
+//   ): Flowable<Payload<string, string>> {
+//     return Flowable.just(make('client channel response'));
+//   }
+// }
 
 function addEventLog(log) {
   var eventLog = document.getElementById("eventLog");

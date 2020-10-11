@@ -1,392 +1,4 @@
 (function(){function r(e,n,t){function o(i,f){if(!n[i]){if(!e[i]){var c="function"==typeof require&&require;if(!f&&c)return c(i,!0);if(u)return u(i,!0);var a=new Error("Cannot find module '"+i+"'");throw a.code="MODULE_NOT_FOUND",a}var p=n[i]={exports:{}};e[i][0].call(p.exports,function(r){var n=e[i][1][r];return o(n||r)},p,p.exports,r,e,n,t)}return n[i].exports}for(var u="function"==typeof require&&require,i=0;i<t.length;i++)o(t[i]);return o}return r})()({1:[function(require,module,exports){
-const {
-  RSocketClient,
-  JsonSerializer,
-  IdentitySerializer
-} = require('rsocket-core');
-const RSocketWebSocketClient = require('rsocket-websocket-client').default;
-const { Flowable } = require('rsocket-flowable');
-
-var clientId = Math.floor((Math.random() * 10000) + 1);
-var keepAlive = 60000;
-var lifetime = 70000;
-
-var clientConfig = new RSocketClient({
-  serializers: {
-    data: JsonSerializer,
-    metadata: IdentitySerializer
-  },
-  setup: {
-    keepAlive: keepAlive,
-    lifetime: lifetime,
-    dataMimeType: 'application/json',
-    metadataMimeType: 'message/x.rsocket.routing.v0',
-  },
-  transport: new RSocketWebSocketClient({
-    url: 'ws://localhost:7000/config'
-  }),
-});
-
-var clientFireAndForget = new RSocketClient({
-  serializers: {
-    data: JsonSerializer,
-    metadata: IdentitySerializer
-  },
-  setup: {
-    payload: {
-      data: "clientId-fireandforget-" + clientId,
-      metadata: String.fromCharCode("client".length) + "client"
-    },
-    keepAlive: keepAlive,
-    lifetime: lifetime,
-    dataMimeType: 'application/json',
-    metadataMimeType: 'message/x.rsocket.routing.v0',
-  },
-  transport: new RSocketWebSocketClient({
-    url: 'ws://localhost:7000/fireandforget'
-  }),
-});
-
-var clientRequestResponse = new RSocketClient({
-  serializers: {
-    data: JsonSerializer,
-    metadata: IdentitySerializer
-  },
-  setup: {
-    payload: {
-      data: "clientId-requestresponse-" + clientId,
-      metadata: String.fromCharCode("client".length) + "client"
-    },
-    keepAlive: keepAlive,
-    lifetime: lifetime,
-    dataMimeType: 'application/json',
-    metadataMimeType: 'message/x.rsocket.routing.v0',
-  },
-  transport: new RSocketWebSocketClient({
-    url: 'ws://localhost:7000/requestresponse'
-  }),
-});
-
-var clientRequestStream = new RSocketClient({
-  serializers: {
-    data: JsonSerializer,
-    metadata: IdentitySerializer
-  },
-  setup: {
-    payload: {
-      data: "clientId-requeststream-" + clientId,
-      metadata: String.fromCharCode("client".length) + "client"
-    },
-    keepAlive: keepAlive,
-    lifetime: lifetime,
-    dataMimeType: 'application/json',
-    metadataMimeType: 'message/x.rsocket.routing.v0',
-  },
-  transport: new RSocketWebSocketClient({
-    url: 'ws://localhost:7000/requeststream'
-  })
-});
-
-var clientRequestChannel = new RSocketClient({
-  setup: {
-    payload: {
-      data: "clientId-requestchannel-" + clientId,
-      metadata: String.fromCharCode("client".length) + "client"
-    },
-    keepAlive: keepAlive,
-    lifetime: lifetime,
-    dataMimeType: 'text/plain',
-    metadataMimeType: 'message/x.rsocket.routing.v0',
-  },
-  transport: new RSocketWebSocketClient({
-    url: 'ws://localhost:7000/requestchannel'
-  })
-});
-
-var socketConfig = undefined;
-var socketFireAndForget = undefined;
-var socketRequestResponse = undefined;
-var socketRequestStream = undefined;
-var socketRequestChannel = undefined;
-
-var subscriptionRequestStream = undefined;
-var subscriptionRequestChannel = undefined;
-
-function addEventLog(log) {
-  var eventLog = document.getElementById("eventLog");
-  var eventLogLi = document.createElement("li");
-  eventLogLi.appendChild(document.createTextNode(log));
-  eventLog.appendChild(eventLogLi);
-}
-
-function subscibeConnectionSocket(socket) {
-  socket.connectionStatus().subscribe(connectionStatus => {
-    addEventLog("connection status: status " + connectionStatus.kind);
-  });
-
-  socket.connectionStatus().subscribe({
-    onComplete: () => {
-      addEventLog("connection status: on complete");
-    },
-    onError: error => {
-      addEventLog("connection status: error " + error);
-    },
-    onNext: value => {
-      addEventLog("connection status: on next " + value);
-    },
-    onSubscribe: subscription => {
-      addEventLog("connection status: on subscribe, name:" + subscription.request.name + ", length: " + subscription.request.length + ", prototype: " +  subscription.request.prototype);
-    }
-  });
-}
-
-// CONFIG
-function connectConfig() {
-  addEventLog("connection: click");
-
-  clientConfig.connect().subscribe({
-    onComplete: socket => {
-      socketConfig = socket;
-      subscibeConnectionSocket(socketConfig);
-      addEventLog("connection: on complete");
-    },
-    onError: error => {
-      addEventLog("connection: error " + error);
-    },
-    onSubscribe: cancel => {
-      addEventLog("connection: on subscribe");
-    }
-  });
-}
-
-function sendConfig() {
-  addEventLog("request: click");
-
-  socketConfig.requestResponse({
-    data: '',
-    metadata: String.fromCharCode('config'.length) + 'config',
-  }).subscribe({
-    onComplete: payload => {
-      addEventLog("request: on complete actualConnection: " + payload.data.actualConnection + ", metadata: " + payload.metadata);
-    },
-    onError: error => {
-      addEventLog("request: error " + error);
-    },
-    onSubscribe: cancel => {
-      addEventLog("request: on subscribe");
-    },
-  });
-}
-
-// FIRE-AND-FORGET
-function connectFireAndForget() {
-  addEventLog("connection: click");
-
-  clientFireAndForget.connect().subscribe({
-    onComplete: socket => {
-      socketFireAndForget = socket;
-      subscibeConnectionSocket(socketFireAndForget);
-      addEventLog("connection: on complete");
-    },
-    onError: error => {
-      addEventLog("connection: error " + error);
-    },
-    onSubscribe: cancel => {
-      addEventLog("connection: on subscribe");
-    }
-  });
-}
-
-function sendFireAndForget() {
-  addEventLog("request: click");
-
-  socketFireAndForget.fireAndForget({
-    data: 'example text',
-    metadata: String.fromCharCode('fireandforget'.length) + 'fireandforget',
-  });
-}
-
-function closeFireAndForget() {
-  addEventLog("close: click");
-  socketFireAndForget.close();
-}
-// REQUEST-RESPONSE
-function connectRequestResponse() {
-  addEventLog("connection: click");
-
-  clientRequestResponse.connect().subscribe({
-    onComplete: socket => {
-      socketRequestResponse = socket;
-      subscibeConnectionSocket(socketRequestResponse);
-      addEventLog("connection: on complete");
-    },
-    onError: error => {
-      addEventLog("connection: error " + error);
-    },
-    onSubscribe: cancel => {
-      addEventLog("connection: on subscribe");
-    }
-  });
-}
-
-function sendRequestResponse() {
-  addEventLog("request: click");
-
-  socketRequestResponse.requestResponse({
-    data: 'example text',
-    metadata: String.fromCharCode('requestresponse'.length) + 'requestresponse',
-  }).subscribe({
-    onComplete: payload => {
-      addEventLog("request: on complete data: " + payload.data.character + ", metadata: " + payload.metadata);
-    },
-    onError: error => {
-      addEventLog("request: error " + error);
-    },
-    onSubscribe: cancel => {
-      addEventLog("request: on subscribe");
-    },
-  });
-}
-
-function closeRequestResponse() {
-  addEventLog("close: click");
-  socketRequestResponse.close();
-}
-// REQUEST-STREAM
-function connectRequestStream() {
-  addEventLog("connection: click");
-
-  clientRequestStream.connect().subscribe({
-    onComplete: socket => {
-      socketRequestStream = socket;
-      subscibeConnectionSocket(socketRequestStream);
-      addEventLog("connection: on complete");
-    },
-    onError: error => {
-      addEventLog("connection: error " + error);
-    },
-    onSubscribe: cancel => {
-      addEventLog("connection: on subscribe");
-    }
-  });
-}
-
-function sendRequestStream() {
-  addEventLog("request: click");
-
-  socketRequestStream.requestStream({
-    data: 'text',
-    metadata: String.fromCharCode('requeststream'.length) + 'requeststream'
-  }).subscribe({
-    onComplete: () => {
-      addEventLog("request: on complete");
-    },
-    onError: error => {
-      addEventLog("request: error " + error);
-    },
-    onNext: payload => {
-      addEventLog("request: on next data: " + payload.data.character + ", metadata: " + payload.metadata);
-    },
-    onSubscribe: subscription => {
-      subscriptionRequestStream = subscription;
-      //max number of reponse element
-      subscription.request(100);
-      addEventLog("request: on subscribe");
-    },
-  });
-}
-
-// cancel flux response, it's not close connection
-function cancelRequestStream() {
-  addEventLog("cancel: click");
-  subscriptionRequestStream.cancel();
-}
-
-function closeRequestStream() {
-  addEventLog("close: click");
-  socketRequestStream.close();
-}
-
-// REQUEST-CHANNEL
-function connectRequestChannel() {
-  addEventLog("connection: click");
-
-  clientRequestChannel.connect().subscribe({
-    onComplete: socket => {
-      socketRequestChannel = socket;
-      subscibeConnectionSocket(socketRequestChannel);
-      addEventLog("connection: on complete");
-    },
-    onError: error => {
-      addEventLog("connection: error " + error);
-    },
-    onSubscribe: cancel => {
-      addEventLog("connection: on subscribe");
-    }
-  });
-}
-
-function sendRequestChannel() {
-  addEventLog("request: click");
-
-  socketRequestChannel.requestChannel(
-    Flowable.just({
-      data: 'first',
-      metadata: String.fromCharCode('requestchannel'.length) + 'requestchannel',
-    }, {
-      data: 'second',
-      metadata: String.fromCharCode('requestchannel'.length) + 'requestchannel',
-    })
-  ).subscribe({
-    onComplete: () => {
-      addEventLog("request: on complete");
-    },
-    onError: error => {
-      addEventLog("request: error " + error);
-    },
-    onNext: payload => {
-      addEventLog("request: on next data: " + payload.data + ", metadata: " + payload.metadata);
-    },
-    onSubscribe: subscription => {
-      subscriptionRequestChannel = subscription;
-      subscription.request(100);
-      addEventLog("request: on subscribe");
-    },
-  });
-}
-
-function cancelRequestChannel() {
-  addEventLog("cancel: click");
-  subscriptionRequestChannel.cancel();
-}
-
-function closeRequestChannel() {
-  addEventLog("close: click");
-  socketRequestChannel.close();
-}
-
-document.getElementById("connectConfig").addEventListener('click', connectConfig);
-document.getElementById("sendConfig").addEventListener('click', sendConfig);
-
-document.getElementById("connectFireAndForget").addEventListener('click', connectFireAndForget);
-document.getElementById("sendFireAndForget").addEventListener('click', sendFireAndForget);
-document.getElementById("closeFireAndForget").addEventListener('click', closeFireAndForget);
-
-document.getElementById("connectRequestResponse").addEventListener('click', connectRequestResponse);
-document.getElementById("sendRequestResponse").addEventListener('click', sendRequestResponse);
-document.getElementById("closeRequestResponse").addEventListener('click', closeRequestResponse);
-
-document.getElementById("connectRequestStream").addEventListener('click', connectRequestStream);
-document.getElementById("sendRequestStream").addEventListener('click', sendRequestStream);
-document.getElementById("cancelRequestStream").addEventListener('click', cancelRequestStream);
-document.getElementById("closeRequestStream").addEventListener('click', closeRequestStream);
-
-document.getElementById("connectRequestChannel").addEventListener('click', connectRequestChannel);
-document.getElementById("sendRequestChannel").addEventListener('click', sendRequestChannel);
-document.getElementById("cancelRequestChannel").addEventListener('click', cancelRequestChannel);
-document.getElementById("closeRequestChannel").addEventListener('click', closeRequestChannel);
-
-},{"rsocket-core":27,"rsocket-flowable":34,"rsocket-websocket-client":39}],2:[function(require,module,exports){
 'use strict'
 
 exports.byteLength = byteLength
@@ -540,7 +152,7 @@ function fromByteArray (uint8) {
   return parts.join('')
 }
 
-},{}],3:[function(require,module,exports){
+},{}],2:[function(require,module,exports){
 (function (Buffer){
 /*!
  * The buffer module from node.js, for the browser.
@@ -2321,7 +1933,7 @@ function numberIsNaN (obj) {
 }
 
 }).call(this,require("buffer").Buffer)
-},{"base64-js":2,"buffer":3,"ieee754":10}],4:[function(require,module,exports){
+},{"base64-js":1,"buffer":2,"ieee754":9}],3:[function(require,module,exports){
 "use strict";
 
 /**
@@ -2360,7 +1972,7 @@ emptyFunction.thatReturnsArgument = function (arg) {
 };
 
 module.exports = emptyFunction;
-},{}],5:[function(require,module,exports){
+},{}],4:[function(require,module,exports){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
  *
@@ -2400,7 +2012,7 @@ function forEachObject(object, callback, context) {
 }
 
 module.exports = forEachObject;
-},{}],6:[function(require,module,exports){
+},{}],5:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2013-present, Facebook, Inc.
@@ -2455,7 +2067,7 @@ function invariant(condition, format) {
 
 module.exports = invariant;
 }).call(this,require('_process'))
-},{"_process":12}],7:[function(require,module,exports){
+},{"_process":11}],6:[function(require,module,exports){
 "use strict";
 
 /**
@@ -2475,7 +2087,7 @@ var nullthrows = function nullthrows(x) {
 };
 
 module.exports = nullthrows;
-},{}],8:[function(require,module,exports){
+},{}],7:[function(require,module,exports){
 "use strict";
 
 /**
@@ -2508,7 +2120,7 @@ function sprintf(format) {
 }
 
 module.exports = sprintf;
-},{}],9:[function(require,module,exports){
+},{}],8:[function(require,module,exports){
 (function (process){
 /**
  * Copyright (c) 2014-present, Facebook, Inc.
@@ -2565,7 +2177,7 @@ var warning = process.env.NODE_ENV !== "production" ? function (condition, forma
 } : emptyFunction;
 module.exports = warning;
 }).call(this,require('_process'))
-},{"./emptyFunction":4,"_process":12}],10:[function(require,module,exports){
+},{"./emptyFunction":3,"_process":11}],9:[function(require,module,exports){
 exports.read = function (buffer, offset, isLE, mLen, nBytes) {
   var e, m
   var eLen = (nBytes * 8) - mLen - 1
@@ -2651,7 +2263,7 @@ exports.write = function (buffer, value, offset, isLE, mLen, nBytes) {
   buffer[offset + i - d] |= s * 128
 }
 
-},{}],11:[function(require,module,exports){
+},{}],10:[function(require,module,exports){
 /*!
  * Determine if an object is a Buffer
  *
@@ -2674,7 +2286,7 @@ function isSlowBuffer (obj) {
   return typeof obj.readFloatLE === 'function' && typeof obj.slice === 'function' && isBuffer(obj.slice(0, 0))
 }
 
-},{}],12:[function(require,module,exports){
+},{}],11:[function(require,module,exports){
 // shim for using process in browser
 var process = module.exports = {};
 
@@ -2860,7 +2472,7 @@ process.chdir = function (dir) {
 };
 process.umask = function() { return 0; };
 
-},{}],13:[function(require,module,exports){
+},{}],12:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {value: true});
 exports.WellKnownMimeTypeEntry = (exports.ReservedMimeTypeEntry = (exports.ExplicitMimeTimeEntry = (exports.CompositeMetadata = undefined)));
@@ -3226,7 +2838,7 @@ function isAscii(buffer, offset) {
   return isAscii;
 }
 
-},{"./LiteBuffer":14,"./RSocketBufferUtils":16,"./WellKnownMimeType":26}],14:[function(require,module,exports){
+},{"./LiteBuffer":13,"./RSocketBufferUtils":15,"./WellKnownMimeType":25}],13:[function(require,module,exports){
 (function (global,Buffer){
 'use strict';
 Object.defineProperty(exports, '__esModule', {value: true});
@@ -4000,7 +3612,7 @@ function numberIsNaN(obj) {
 }
 
 }).call(this,typeof global !== "undefined" ? global : typeof self !== "undefined" ? self : typeof window !== "undefined" ? window : {},require("buffer").Buffer)
-},{"buffer":3}],15:[function(require,module,exports){
+},{"buffer":2}],14:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -5085,7 +4697,7 @@ function readPayload(buffer, frame, encoders, offset) {
   }
 }
 
-},{"./RSocketBufferUtils":16,"./RSocketEncoding":18,"./RSocketFrame":19,"fbjs/lib/invariant":6}],16:[function(require,module,exports){
+},{"./RSocketBufferUtils":15,"./RSocketEncoding":17,"./RSocketFrame":18,"fbjs/lib/invariant":5}],15:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -5207,7 +4819,7 @@ function _interopRequireDefault(obj) {
   ? length => _LiteBuffer.LiteBuffer.alloc(length) // $FlowFixMe
   : length => new _LiteBuffer.LiteBuffer(length).fill(0));
 
-},{"./LiteBuffer":14,"fbjs/lib/invariant":6}],17:[function(require,module,exports){
+},{"./LiteBuffer":13,"fbjs/lib/invariant":5}],16:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -5440,7 +5052,7 @@ class RSocketClientSocket {
   }
 }
 
-},{"./RSocketFrame":19,"./RSocketLease":20,"./RSocketMachine":21,"./RSocketSerialization":23,"./RSocketVersion":25,"fbjs/lib/invariant":6,"rsocket-flowable":34}],18:[function(require,module,exports){
+},{"./RSocketFrame":18,"./RSocketLease":19,"./RSocketMachine":20,"./RSocketSerialization":22,"./RSocketVersion":24,"fbjs/lib/invariant":5,"rsocket-flowable":33}],17:[function(require,module,exports){
 (function (Buffer){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
@@ -5546,7 +5158,7 @@ const BufferEncoders = (exports.BufferEncoders = {
 });
 
 }).call(this,{"isBuffer":require("../../is-buffer/index.js")})
-},{"../../is-buffer/index.js":11,"./RSocketBufferUtils":16,"fbjs/lib/invariant":6}],19:[function(require,module,exports){
+},{"../../is-buffer/index.js":10,"./RSocketBufferUtils":15,"fbjs/lib/invariant":5}],18:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -5788,7 +5400,7 @@ function toHex(n) {
   return '0x' + n.toString(16);
 }
 
-},{"fbjs/lib/forEachObject":5,"fbjs/lib/sprintf":8}],20:[function(require,module,exports){
+},{"fbjs/lib/forEachObject":4,"fbjs/lib/sprintf":7}],19:[function(require,module,exports){
 /** Copyright 2015-2019 the original author or authors.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -6066,7 +5678,7 @@ function _errorMessage(lease) {
   }
 }
 
-},{"./RSocketFrame":19,"fbjs/lib/invariant":6,"rsocket-flowable":34}],21:[function(require,module,exports){
+},{"./RSocketFrame":18,"fbjs/lib/invariant":5,"rsocket-flowable":33}],20:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -6906,7 +6518,7 @@ function deserializePayload(serializers, frame) {
   };
 }
 
-},{"./RSocketFrame":19,"./RSocketLease":20,"./RSocketSerialization":23,"fbjs/lib/emptyFunction":4,"fbjs/lib/invariant":6,"fbjs/lib/warning":9,"rsocket-flowable":34}],22:[function(require,module,exports){
+},{"./RSocketFrame":18,"./RSocketLease":19,"./RSocketSerialization":22,"fbjs/lib/emptyFunction":3,"fbjs/lib/invariant":5,"fbjs/lib/warning":8,"rsocket-flowable":33}],21:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -7399,7 +7011,7 @@ class RSocketResumableTransport {
 }
 exports.default = RSocketResumableTransport;
 
-},{"./RSocketBinaryFraming":15,"./RSocketFrame":19,"fbjs/lib/invariant":6,"rsocket-flowable":34,"rsocket-types":37}],23:[function(require,module,exports){
+},{"./RSocketBinaryFraming":14,"./RSocketFrame":18,"fbjs/lib/invariant":5,"rsocket-flowable":33,"rsocket-types":36}],22:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -7478,7 +7090,7 @@ const IdentitySerializers = (exports.IdentitySerializers = {
   metadata: IdentitySerializer,
 });
 
-},{"./LiteBuffer":14,"fbjs/lib/invariant":6}],24:[function(require,module,exports){
+},{"./LiteBuffer":13,"fbjs/lib/invariant":5}],23:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -7713,7 +7325,7 @@ function deserializePayload(serializers, frame) {
   };
 }
 
-},{"./RSocketFrame":19,"./RSocketLease":20,"./RSocketMachine":21,"./RSocketSerialization":23,"fbjs/lib/invariant":6,"rsocket-flowable":34}],25:[function(require,module,exports){
+},{"./RSocketFrame":18,"./RSocketLease":19,"./RSocketMachine":20,"./RSocketSerialization":22,"fbjs/lib/invariant":5,"rsocket-flowable":33}],24:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -7737,7 +7349,7 @@ Object.defineProperty(exports, '__esModule', {value: true});
 const MAJOR_VERSION = (exports.MAJOR_VERSION = 1);
 const MINOR_VERSION = (exports.MINOR_VERSION = 0);
 
-},{}],26:[function(require,module,exports){
+},{}],25:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {value: true});
 
@@ -8065,7 +7677,7 @@ if (Object.seal) {
   Object.seal(TYPES_BY_MIME_ID);
 }
 
-},{}],27:[function(require,module,exports){
+},{}],26:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -8687,7 +8299,7 @@ exports.RSocketServer = _RSocketServer2.default;
 exports.RSocketResumableTransport = _RSocketResumableTransport2.default;
 exports.WellKnownMimeType = _WellKnownMimeType2.default;
 
-},{"./CompositeMetadata":13,"./RSocketBinaryFraming":15,"./RSocketBufferUtils":16,"./RSocketClient":17,"./RSocketEncoding":18,"./RSocketFrame":19,"./RSocketLease":20,"./RSocketResumableTransport":22,"./RSocketSerialization":23,"./RSocketServer":24,"./WellKnownMimeType":26}],28:[function(require,module,exports){
+},{"./CompositeMetadata":12,"./RSocketBinaryFraming":14,"./RSocketBufferUtils":15,"./RSocketClient":16,"./RSocketEncoding":17,"./RSocketFrame":18,"./RSocketLease":19,"./RSocketResumableTransport":21,"./RSocketSerialization":22,"./RSocketServer":23,"./WellKnownMimeType":25}],27:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -8951,7 +8563,7 @@ class FlowableSubscriber {
   }
 }
 
-},{"./FlowableMapOperator":29,"./FlowableTakeOperator":31,"fbjs/lib/emptyFunction":4,"fbjs/lib/invariant":6,"fbjs/lib/warning":9}],29:[function(require,module,exports){
+},{"./FlowableMapOperator":28,"./FlowableTakeOperator":30,"fbjs/lib/emptyFunction":3,"fbjs/lib/invariant":5,"fbjs/lib/warning":8}],28:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -9014,7 +8626,7 @@ class FlowableMapOperator {
 }
 exports.default = FlowableMapOperator;
 
-},{"fbjs/lib/nullthrows":7}],30:[function(require,module,exports){
+},{"fbjs/lib/nullthrows":6}],29:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {value: true});
 var _warning = require('fbjs/lib/warning');
@@ -9106,7 +8718,7 @@ class FlowableProcessor {
 }
 exports.default = FlowableProcessor;
 
-},{"fbjs/lib/warning":9}],31:[function(require,module,exports){
+},{"fbjs/lib/warning":8}],30:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -9180,7 +8792,7 @@ class FlowableTakeOperator {
 }
 exports.default = FlowableTakeOperator;
 
-},{"fbjs/lib/nullthrows":7}],32:[function(require,module,exports){
+},{"fbjs/lib/nullthrows":6}],31:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -9254,7 +8866,7 @@ function _interopRequireDefault(obj) {
   });
 }
 
-},{"./Flowable":28}],33:[function(require,module,exports){
+},{"./Flowable":27}],32:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -9472,7 +9084,7 @@ class FutureSubscriber {
   }
 }
 
-},{"fbjs/lib/emptyFunction":4,"fbjs/lib/warning":9}],34:[function(require,module,exports){
+},{"fbjs/lib/emptyFunction":3,"fbjs/lib/warning":8}],33:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -9512,7 +9124,7 @@ exports.FlowableProcessor = _FlowableProcessor2.default;
 exports.Single = _Single2.default;
 exports.every = _FlowableTimer.every;
 
-},{"./Flowable":28,"./FlowableProcessor":30,"./FlowableTimer":32,"./Single":33}],35:[function(require,module,exports){
+},{"./Flowable":27,"./FlowableProcessor":29,"./FlowableTimer":31,"./Single":32}],34:[function(require,module,exports){
 'use strict';
 Object.defineProperty(exports, '__esModule', {
   value: true,
@@ -9588,10 +9200,10 @@ Object.defineProperty(exports, '__esModule', {
 
 // prettier-ignore
 
-},{}],36:[function(require,module,exports){
+},{}],35:[function(require,module,exports){
 'use strict';
 
-},{}],37:[function(require,module,exports){
+},{}],36:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -9634,7 +9246,7 @@ Object.keys(_ReactiveStreamTypes).forEach(function(key) {
   });
 });
 
-},{"./ReactiveSocketTypes":35,"./ReactiveStreamTypes":36}],38:[function(require,module,exports){
+},{"./ReactiveSocketTypes":34,"./ReactiveStreamTypes":35}],37:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -9834,7 +9446,7 @@ class RSocketWebSocketClient {
 }
 exports.default = RSocketWebSocketClient;
 
-},{"fbjs/lib/invariant":6,"rsocket-core":27,"rsocket-flowable":34,"rsocket-types":37}],39:[function(require,module,exports){
+},{"fbjs/lib/invariant":5,"rsocket-core":26,"rsocket-flowable":33,"rsocket-types":36}],38:[function(require,module,exports){
 /** Copyright (c) Facebook, Inc. and its affiliates.
  *
  * Licensed under the Apache License, Version 2.0 (the "License");
@@ -9862,4 +9474,78 @@ function _interopRequireDefault(obj) {
 }
 exports.default = _RSocketWebSocketClient2.default;
 
-},{"./RSocketWebSocketClient":38}]},{},[1]);
+},{"./RSocketWebSocketClient":37}],39:[function(require,module,exports){
+"use strict";
+exports.__esModule = true;
+var rsocket_core_1 = require("rsocket-core");
+// import { Flowable } from "rsocket-flowable";
+var rsocket_websocket_client_1 = require("rsocket-websocket-client");
+var socketConfig;
+var clientId = Math.floor((Math.random() * 10000) + 1);
+var keepAlive = 60000;
+var lifetime = 70000;
+var clientConfig = new rsocket_core_1.RSocketClient({
+    serializers: {
+        data: rsocket_core_1.JsonSerializer,
+        metadata: rsocket_core_1.IdentitySerializer
+    },
+    setup: {
+        keepAlive: keepAlive,
+        lifetime: lifetime,
+        dataMimeType: 'application/json',
+        metadataMimeType: 'message/x.rsocket.routing.v0'
+    },
+    transport: new rsocket_websocket_client_1["default"]({
+        url: 'ws://localhost:7000/config'
+    })
+});
+function addEventLog(log) {
+    var eventLog = document.getElementById("eventLog");
+    var eventLogLi = document.createElement("li");
+    eventLogLi.appendChild(document.createTextNode(log));
+    eventLog.appendChild(eventLogLi);
+}
+function subscibeConnectionSocket(socket) {
+    socket.connectionStatus().subscribe(function (connectionStatus) {
+        addEventLog("connection status: status " + connectionStatus.kind);
+    });
+    socket.connectionStatus().subscribe({
+        onComplete: function () {
+            addEventLog("connection status: on complete");
+        },
+        onError: function (error) {
+            addEventLog("connection status: error " + error);
+        },
+        onNext: function (value) {
+            addEventLog("connection status: on next " + value);
+        },
+        onSubscribe: function (subscription) {
+            addEventLog("connection status: on subscribe, name:" + subscription.request.name + ", length: " + subscription.request.length + ", prototype: " + subscription.request.prototype);
+        }
+    });
+}
+function connectConfig() {
+    addEventLog("connection: click");
+    clientConfig.connect().subscribe({
+        onComplete: function (socket) {
+            addEventLog("connection: on complete");
+            subscibeConnectionSocket(socket);
+            socketConfig = socket;
+        },
+        onError: function (error) {
+            addEventLog("connection: error " + error);
+        },
+        onSubscribe: function (cancel) {
+            addEventLog("connection: on subscribe");
+        }
+    });
+}
+document.getElementById("connectConfig").addEventListener('click', function (e) { return connectConfig(); });
+// document.getElementById("sendConfig").addEventListener('click', sendConfig);
+// function greeter(person: string) {
+//   return "Hello, " + person;
+// }
+// let user = "Jane User";
+// document.body.textContent = greeter(user);
+
+},{"rsocket-core":26,"rsocket-websocket-client":38}]},{},[39]);
