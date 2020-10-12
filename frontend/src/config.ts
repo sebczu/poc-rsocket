@@ -6,7 +6,6 @@ import RSocketWebSocketClient from "rsocket-websocket-client";
 import { ConnectionSocket } from "./connectionSocket";
 import { EventLog } from "./eventLog";
 import { ConfigResponder } from "./configResponder";
-import { every } from 'rsocket-flowable';
 
 let socketConfig: ReactiveSocket<any, Encodable>;
 

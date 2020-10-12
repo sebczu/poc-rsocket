@@ -31,13 +31,7 @@ const clientRequestResponse = new RSocketClient({
     metadataMimeType: 'message/x.rsocket.routing.v0',
   },
   transport: new RSocketWebSocketClient({
-    url: 'ws://localhost:7000/requestresponse',
-    // wsCreator: url => {
-    //   debugger
-    //   const ws = new WebSocket('ws://localhost:7000/requestresponse')
-    //   debugger
-    //   return ws
-    // }
+    url: 'ws://localhost:7000/requestresponse'
   })
 });
 
