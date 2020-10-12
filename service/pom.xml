@@ -17,11 +17,9 @@
 
     <!--MODULES-->
     <module>player</module>
-    <module>config</module>
 
     <!--SERVICE-->
     <module>player/service</module>
-    <module>config/service</module>
 
     <module>application</module>
   </modules>

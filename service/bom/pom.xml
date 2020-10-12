@@ -23,11 +23,6 @@
         <artifactId>player-service</artifactId>
         <version>${project.version}</version>
       </dependency>
-      <dependency>
-        <groupId>com.sebczu.poc.rsocket</groupId>
-        <artifactId>config-service</artifactId>
-        <version>${project.version}</version>
-      </dependency>
     </dependencies>
   </dependencyManagement>
 

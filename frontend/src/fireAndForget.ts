@@ -5,10 +5,8 @@ import { ReactiveSocket, Encodable } from 'rsocket-types';
 import RSocketWebSocketClient from "rsocket-websocket-client";
 import { ConnectionSocket } from "./connectionSocket";
 import { EventLog } from "./eventLog";
-import { ConfigResponder } from "./configResponder";
-import { every } from 'rsocket-flowable';
 
-let socketConfig: ReactiveSocket<any, Encodable>;
+let socketFireAndForget: ReactiveSocket<any, Encodable>;
 
 let clientId = Math.floor((Math.random() * 10000) + 1);
 let keepAlive = 60000;
@@ -16,16 +14,15 @@ let lifetime = 70000;
 
 const eventLog = new EventLog();
 const connectionSocket = new ConnectionSocket();
-const configResponder = new ConfigResponder();
 
-const clientConfig = new RSocketClient({
+const clientFireAndForget = new RSocketClient({
   serializers: {
     data: JsonSerializer,
     metadata: IdentitySerializer
   },
   setup: {
     payload: {
-      data: "clientId-config-" + clientId,
+      data: "clientId-fireandforget-" + clientId,
       metadata: String.fromCharCode("client".length) + "client"
     },
     keepAlive: keepAlive,
@@ -34,19 +31,18 @@ const clientConfig = new RSocketClient({
     metadataMimeType: 'message/x.rsocket.routing.v0',
   },
   transport: new RSocketWebSocketClient({
-    url: 'ws://localhost:7000/config'
+    url: 'ws://localhost:7000/fireandforget'
   }),
-  responder: configResponder
 });
 
-function connectConfig() {
+function connectFireAndForget() {
   eventLog.add("connection: click");
 
-  clientConfig.connect().subscribe({
+  clientFireAndForget.connect().subscribe({
     onComplete: socket => {
+      socketFireAndForget = socket;
+      connectionSocket.subsribe(socketFireAndForget);
       eventLog.add("connection: on complete");
-      connectionSocket.subsribe(socket);
-      socketConfig = socket;
     },
     onError: error => {
       eventLog.add("connection: error " + error);
@@ -57,4 +53,20 @@ function connectConfig() {
   });
 }
 
-document.getElementById("connectConfig").addEventListener('click', (e:Event) => connectConfig());
+function sendFireAndForget() {
+  eventLog.add("request: click");
+
+  socketFireAndForget.fireAndForget({
+    data: 'example text',
+    metadata: String.fromCharCode('fireandforget'.length) + 'fireandforget',
+  });
+}
+
+function closeFireAndForget() {
+  eventLog.add("close: click");
+  socketFireAndForget.close();
+}
+
+document.getElementById("connectFireAndForget").addEventListener('click', (e:Event) => connectFireAndForget());
+document.getElementById("sendFireAndForget").addEventListener('click', (e:Event) => sendFireAndForget());
+document.getElementById("closeFireAndForget").addEventListener('click', (e:Event) => closeFireAndForget());
