@@ -1,10 +1,13 @@
 apiVersion: networking.k8s.io/v1beta1
 kind: Ingress
 metadata:
-  name: minimal-ingress
+  name: poc-rsocket-ingress
   namespace: ingress-nginx
   annotations:
-    nginx.org/websocket-services: "poc-rsocket"
+#    value must be grater than keepAlive defined in rsocket client
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "80"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "80"
+#    nginx.ingress.kubernetes.io/websocket-services: "poc-rsocket"
 spec:
   rules:
     - http:
