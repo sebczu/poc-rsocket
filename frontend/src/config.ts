@@ -6,12 +6,11 @@ import RSocketWebSocketClient from "rsocket-websocket-client";
 import { ConnectionSocket } from "./connectionSocket";
 import { EventLog } from "./eventLog";
 import { ConfigResponder } from "./configResponder";
+import { keepAlive, lifetime, host, port } from "./const";
 
 let socketConfig: ReactiveSocket<any, Encodable>;
 
 let clientId = Math.floor((Math.random() * 10000) + 1);
-let keepAlive = 60000;
-let lifetime = 70000;
 
 const eventLog = new EventLog();
 const connectionSocket = new ConnectionSocket();
@@ -33,7 +32,7 @@ const clientConfig = new RSocketClient({
     metadataMimeType: 'message/x.rsocket.routing.v0',
   },
   transport: new RSocketWebSocketClient({
-    url: 'ws://localhost:7000/config'
+    url: 'ws://' + host + ':' + port + '/config'
   }),
   responder: configResponder
 });

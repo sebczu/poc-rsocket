@@ -4,10 +4,9 @@ import { RSocketClient,
 import { Encodable } from 'rsocket-types';
 import RSocketWebSocketClient from "rsocket-websocket-client";
 import { EventLog } from "./eventLog";
+import { keepAlive, lifetime, host, port } from "./const";
 
 let clientId = Math.floor((Math.random() * 10000) + 1);
-let keepAlive = 60000;
-let lifetime = 70000;
 
 const eventLog = new EventLog();
 
@@ -28,7 +27,7 @@ function getClient(): RSocketClient<any, Encodable> {
       metadataMimeType: 'message/x.rsocket.routing.v0',
     },
     transport: new RSocketWebSocketClient({
-      url: 'ws://localhost:7000/fireandforget'
+      url: 'ws://' + host + ':' + port + '/fireandforget'
     }),
   });
 }

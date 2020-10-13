@@ -4,13 +4,12 @@ import RSocketWebSocketClient from "rsocket-websocket-client";
 import { Flowable } from 'rsocket-flowable';
 import { ConnectionSocket } from "./connectionSocket";
 import { EventLog } from "./eventLog";
+import { keepAlive, lifetime, host, port } from "./const";
 
 let socketRequestChannel: ReactiveSocket<any, Encodable>;
 let subscriptionRequestChannel: ISubscription;
 
 let clientId = Math.floor((Math.random() * 10000) + 1);
-let keepAlive = 60000;
-let lifetime = 70000;
 
 const eventLog = new EventLog();
 const connectionSocket = new ConnectionSocket();
@@ -27,7 +26,7 @@ const clientRequestChannel = new RSocketClient({
     metadataMimeType: 'message/x.rsocket.routing.v0',
   },
   transport: new RSocketWebSocketClient({
-    url: 'ws://localhost:7000/requestchannel'
+    url: 'ws://' + host + ':' + port + '/requestchannel'
   })
 });
 

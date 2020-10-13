@@ -1,0 +1,43 @@
+kind: Service
+apiVersion: v1
+metadata:
+  namespace: ingress-nginx
+  name: poc-rsocket
+spec:
+  selector:
+    app: poc-rsocket
+  ports:
+    - protocol: TCP
+      name: service-port
+      port: 7000
+      nodePort: 30700
+  type: NodePort
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  namespace: ingress-nginx
+  name: poc-rsocket
+spec:
+  selector:
+    matchLabels:
+      app: poc-rsocket
+  replicas: 3
+  template:
+    metadata:
+      labels:
+        app: poc-rsocket
+    spec:
+      containers:
+        - name: poc-rsocket-container
+          image: poc-rsocket-image
+          ports:
+            - name: service-port
+              containerPort: 7000
+          resources:
+            limits:
+              cpu: "2"
+              memory: "1G"
+            requests:
+              cpu: "1"
+              memory: "600Mi"
