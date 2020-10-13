@@ -7,7 +7,6 @@ metadata:
 #    value must be grater than keepAlive defined in rsocket client
     nginx.ingress.kubernetes.io/proxy-read-timeout: "80"
     nginx.ingress.kubernetes.io/proxy-send-timeout: "80"
-#    nginx.ingress.kubernetes.io/websocket-services: "poc-rsocket"
 spec:
   rules:
     - http:
