@@ -10,6 +10,7 @@ mvn clean install -DskipTests
 https://github.com/making/rsc/releases
 
 #### Client rsocket, tests:
+##### directory: /rsocket-client
 Fire and forget
 ```bash
 java -jar rsc-0.6.1.jar --debug --im FIRE_AND_FORGET --route save ws://localhost:7000  --data "text"
