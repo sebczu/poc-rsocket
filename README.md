@@ -30,5 +30,5 @@ java -jar rsc-0.6.1.jar --debug --im REQUEST_CHANNEL --route message ws://localh
 #### Compile frontend module
 ```bash
 npm install
-npm run-script build
+npm run build
 ``` 
