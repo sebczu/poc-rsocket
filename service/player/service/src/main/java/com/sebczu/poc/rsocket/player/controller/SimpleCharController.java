@@ -2,6 +2,7 @@ package com.sebczu.poc.rsocket.player.controller;
 
 import com.sebczu.poc.rsocket.player.domain.SimpleChar;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.messaging.handler.annotation.MessageExceptionHandler;
 import org.springframework.messaging.handler.annotation.MessageMapping;
 import org.springframework.stereotype.Controller;
 import reactor.core.publisher.Flux;
@@ -39,5 +40,16 @@ public class SimpleCharController {
         return texts.doOnNext(text -> log.info("message: {}", text))
                 .map(text -> "hello: " + text)
                 .delayElements(Duration.ofMillis(1000));
+    }
+
+    @MessageMapping("requestresponseexception")
+    public Mono<SimpleChar> requestResponseException(String text) {
+        log.info("receive text: {}", text);
+        throw new RuntimeException("expected exception");
+    }
+
+    @MessageExceptionHandler
+    public Mono<SimpleChar> handleException(Exception exception) {
+        return Mono.just(new SimpleChar("error: " + exception));
     }
 }

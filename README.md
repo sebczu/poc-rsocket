@@ -1,6 +1,11 @@
 ### **POC-RSOCKET**
 **spring boot + rsocket**
 
+#### Build application
+```bash
+mvn clean install -DskipTests
+```
+
 #### Client rsocket
 https://github.com/making/rsc/releases
 

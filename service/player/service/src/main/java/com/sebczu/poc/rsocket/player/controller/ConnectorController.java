@@ -41,7 +41,8 @@ public class ConnectorController {
         .filter(entry -> entry.getKey().contains("clientId-config"))
         .forEach(entry -> {
           log.info("push message");
-          entry.getValue().route("client")
+          RSocketRequester requester = entry.getValue();
+          requester.route("client")
               .data(new Config(requesters.size()))
               .send()
               .subscribe();

@@ -4,3 +4,4 @@ import("./requestResponse");
 import("./requestStream");
 import("./requestChannel");
 import("./reconnect");
+import("./requestResponseException");
