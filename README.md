@@ -1,9 +1,19 @@
 ### **POC-RSOCKET**
 **spring boot + rsocket**
 
-#### Build application
+#### 1. Build service
 ```bash
-mvn clean install -DskipTests
+mvn clean install
+```
+
+#### 2. Run service
+```bash
+mvn clean package -Prun
+```
+
+#### 3. Build docker image
+```bash
+mvn clean package -Pbuild-image
 ```
 
 #### Client rsocket
