@@ -1,8 +1,11 @@
 package com.sebczu.poc.rsocket.player.controller;
 
 import com.sebczu.poc.rsocket.player.domain.Config;
+
+import java.time.Duration;
 import java.util.Map;
 import java.util.concurrent.ConcurrentHashMap;
+
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.messaging.handler.annotation.Payload;
 import org.springframework.messaging.rsocket.RSocketRequester;
@@ -38,13 +41,14 @@ public class ConnectorController {
   private void pushMessage() {
     requesters.entrySet()
         .stream()
-        .filter(entry -> entry.getKey().contains("clientId-config"))
         .forEach(entry -> {
           log.info("push message");
           RSocketRequester requester = entry.getValue();
-          requester.route("client")
+          requester.route("push")
               .data(new Config(requesters.size()))
               .send()
+              .doOnError(error -> log.error("Error during push", error))
+              .doOnSuccess(s -> log.info("Success push"))
               .subscribe();
         });
   }
